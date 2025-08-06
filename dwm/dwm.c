@@ -354,6 +354,7 @@ static void sendmon(Client *c, Monitor *m);
 static void setclientstate(Client *c, long state);
 static void setfocus(Client *c);
 static void setfullscreen(Client *c, int fullscreen);
+static void fullscreen(const Arg *arg);
 static void setlayout(const Arg *arg);
 static void setmfact(const Arg *arg);
 static void setup(void);
@@ -710,36 +711,72 @@ cleanup(void)
 
 }
 
+// void
+// cleanupmon(Monitor *mon)
+// {
+// 	Monitor *m;
+// 	Bar *bar;
+//
+// 	if (mon == mons)
+// 		mons = mons->next;
+// 	else {
+// 		for (m = mons; m && m->next != mon; m = m->next);
+// 		m->next = mon->next;
+// 	}
+// 	for (bar = mon->bar; bar; bar = bar->next) {
+// 		if (!bar->external) {
+// 			XUnmapWindow(dpy, bar->win);
+// 			XDestroyWindow(dpy, bar->win);
+// 		}
+// 		mon->bar = bar->next;
+// 		if (systray && bar == systray->bar)
+// 			systray->bar = NULL;
+// 		free(bar);
+// 	}
+// 	free(mon->pertag);
+// 	for (size_t i = 0; i < NUMTAGS; i++)
+// 		if (mon->tagmap[i])
+// 			XFreePixmap(dpy, mon->tagmap[i]);
+// 	XUnmapWindow(dpy, mon->tagwin);
+// 	XDestroyWindow(dpy, mon->tagwin);
+// 	free(mon);
+// }
+//
 void
 cleanupmon(Monitor *mon)
 {
-	Monitor *m;
-	Bar *bar;
+    Monitor *m;
+    Bar *bar, *next;
 
-	if (mon == mons)
-		mons = mons->next;
-	else {
-		for (m = mons; m && m->next != mon; m = m->next);
-		m->next = mon->next;
-	}
-	for (bar = mon->bar; bar; bar = mon->bar) {
-		if (!bar->external) {
-			XUnmapWindow(dpy, bar->win);
-			XDestroyWindow(dpy, bar->win);
-		}
-		mon->bar = bar->next;
-		if (systray && bar == systray->bar)
-			systray->bar = NULL;
-		free(bar);
-	}
-	free(mon->pertag);
-	for (size_t i = 0; i < NUMTAGS; i++)
-		if (mon->tagmap[i])
-			XFreePixmap(dpy, mon->tagmap[i]);
-	XUnmapWindow(dpy, mon->tagwin);
-	XDestroyWindow(dpy, mon->tagwin);
-	free(mon);
+    if (mon == mons)
+        mons = mons->next;
+    else {
+        for (m = mons; m && m->next != mon; m = m->next);
+        if (m)
+            m->next = mon->next;
+    }
+    for (bar = mon->bar; bar; bar = next) {
+        next = bar->next;  // save next pointer before freeing
+
+        if (!bar->external) {
+            XUnmapWindow(dpy, bar->win);
+            XDestroyWindow(dpy, bar->win);
+        }
+        // It's okay to update mon->bar here if you want,
+        // but it doesn't really matter once you're freeing everything
+        if (systray && bar == systray->bar)
+            systray->bar = NULL;
+        free(bar);
+    }
+    free(mon->pertag);
+    for (size_t i = 0; i < NUMTAGS; i++)
+        if (mon->tagmap[i])
+            XFreePixmap(dpy, mon->tagmap[i]);
+    XUnmapWindow(dpy, mon->tagwin);
+    XDestroyWindow(dpy, mon->tagwin);
+    free(mon);
 }
+
 
 void
 clientmessage(XEvent *e)
@@ -2009,6 +2046,19 @@ setfullscreen(Client *c, int fullscreen)
 		c->isfullscreen = 0;
 	}
 	resizeclient(c, c->x, c->y, c->w, c->h);
+}
+
+Layout *last_layout;
+void
+fullscreen(const Arg *arg)
+{
+	if (selmon->showbar) {
+		for(last_layout = (Layout *)layouts; last_layout != selmon->lt[selmon->sellt]; last_layout++);
+		setlayout(&((Arg) { .v = &layouts[2] }));
+	} else {
+		setlayout(&((Arg) { .v = last_layout }));
+	}
+	togglebar(arg);
 }
 
 void

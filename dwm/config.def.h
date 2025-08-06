@@ -394,7 +394,7 @@ static const Key keys[] = {
 	{ MODKEY|ShiftMask,             XK_q,          quit,                   {0} },
 	{ MODKEY|ControlMask|ShiftMask, XK_q,          quit,                   {1} },
 	{ MODKEY,                       XK_t,          setlayout,              {.v = &layouts[0]} },
-	{ MODKEY,                       XK_f,          setlayout,              {.v = &layouts[1]} },
+	{ MODKEY|ShiftMask,                       XK_f,          setlayout,              {.v = &layouts[1]} },
 	{ MODKEY,                       XK_m,          setlayout,              {.v = &layouts[2]} },
 	{ MODKEY,                       XK_c,          setlayout,              {.v = &layouts[3]} },
 	{ MODKEY|ControlMask,           XK_t,          rotatelayoutaxis,       {.i = +1 } },   /* flextile, 1 = layout axis */
@@ -408,6 +408,7 @@ static const Key keys[] = {
 	{ MODKEY|ControlMask,           XK_Return,     mirrorlayout,           {0} },          /* flextile, flip master and stack areas */
 	{ MODKEY,                       XK_space,      setlayout,              {0} },
 	{ MODKEY|ShiftMask,             XK_space,      togglefloating,         {0} },
+	{ MODKEY,                       XK_f,          fullscreen,       {0} },
 	{ MODKEY,                       XK_w,          togglescratch,          {.v = sptermcmd } },
 	{ MODKEY|ControlMask,           XK_w,          setscratch,             {.v = sptermcmd } },
 	{ MODKEY|ShiftMask,             XK_w,          removescratch,          {.v = sptermcmd } },
